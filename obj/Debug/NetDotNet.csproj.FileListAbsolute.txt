@@ -1,6 +1,0 @@
-c:\users\alexander\documents\visual studio 2015\Projects\NetDotNet\NetDotNet\bin\Debug\NetDotNet.exe.config
-C:\Users\Alexander\Documents\Visual Studio 2015\Projects\NetDotNet\NetDotNet\obj\Debug\NetDotNet.csprojResolveAssemblyReference.cache
-C:\Users\Alexander\Documents\Visual Studio 2015\Projects\NetDotNet\NetDotNet\bin\Debug\NetDotNet.exe
-C:\Users\Alexander\Documents\Visual Studio 2015\Projects\NetDotNet\NetDotNet\bin\Debug\NetDotNet.pdb
-C:\Users\Alexander\Documents\Visual Studio 2015\Projects\NetDotNet\NetDotNet\obj\Debug\NetDotNet.exe
-C:\Users\Alexander\Documents\Visual Studio 2015\Projects\NetDotNet\NetDotNet\obj\Debug\NetDotNet.pdb
