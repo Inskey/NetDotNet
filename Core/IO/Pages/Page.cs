@@ -2,7 +2,7 @@
 using NetDotNet.API.Requests;
 
 
-namespace NetDotNet.Core.IO
+namespace NetDotNet.Core.IO.Pages
 {
     internal interface Page
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using NetDotNet.SocketLayer;
-using System.Net.Http;
-using NetDotNet.Core.IO;
+using NetDotNet.Core.IO.Pages;
 using NetDotNet.API.Requests;
 using NetDotNet.API.Results;
 using System.Collections.Generic;
+using System.IO;
 
 
 namespace NetDotNet.Core
@@ -17,17 +17,51 @@ namespace NetDotNet.Core
 
         public static void Main(string[] args)
         {
-            foreach (HTTPCode code in HTTPCode.List())
-            {
-                Console.WriteLine(code.SpecialLocation);
-            }
-            Console.ReadLine();
+            
         }
 
         private static void LoadPages()
         {
-
+            if (Directory.Exists("pages"))
+            {
+                
+            }
+            else
+            {
+                Directory.CreateDirectory("pages");
+            }
         }
+
+        private static void LoadPage(string path)
+        {
+            if (path.EndsWith(".dll"))
+            {
+                try
+                {
+                    DynamicGenerator gen = Loader.LoadGenerator(path);
+                    if (gen == null)
+                    {
+                        Util.Log(LogLevel.Error, "Generator at " + path + " does not contain a valid class implementing the PageGenerator interface. It will not be loaded.");
+                        return;
+                    }
+                    pages.Add(path, gen);
+
+                }
+                catch (Exception e)
+                {
+                    Util.Log(LogLevel.Error, new[] {
+                        "Encountered " + e.GetType().Name + " when loading assembly at " + path + "! It will not be loaded. Further details: ",
+                        "Message: " + e.Message,
+                        "Stack Trace: " + e.StackTrace
+                    });
+                }
+            }
+            else
+            {
+                pages.Add(path, Loader.LoadFlat(path));
+            }
+        }
+
 
         private static void LoadResources()
         {
@@ -36,9 +70,14 @@ namespace NetDotNet.Core
 
         private static void LoadSpecials()
         {
-            foreach (HTTPCode code in HTTPCode.List())
+            if (! Directory.Exists("specials"))
             {
+                Directory.CreateDirectory("specials");
+            }
 
+            foreach (HTTPCode code in HTTPCode.ListSpecials())
+            {
+                specials.Add(code, Loader.LoadOrCreateSpecial(code));
             }
         }
 

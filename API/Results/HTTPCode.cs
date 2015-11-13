@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
 
 
@@ -11,7 +10,7 @@ namespace NetDotNet.API.Results
         public string Message { get; private set; }
         internal string SpecialLocation { get; private set; }
 
-        internal static List<HTTPCode> List()
+        internal static List<HTTPCode> ListSpecials()
         {
             return (from pp in 
                         (from p in typeof(HTTPCode).GetFields()
@@ -27,10 +26,10 @@ namespace NetDotNet.API.Results
         public static HTTPCode Unauthorized = new HTTPCode {
             ID      = 401,
             Message = "Authorization Required",
-            SpecialLocation = "401_Unauthorized.html" };
+            SpecialLocation = "401_Unauthorized" };
         public static HTTPCode NotFound = new HTTPCode {
             ID      = 404,
             Message = "Unable To Find Resource",
-            SpecialLocation = "404_NotFound.html" };
+            SpecialLocation = "404_NotFound" };
     }
 }

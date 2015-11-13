@@ -12,7 +12,7 @@ namespace NetDotNet.API.Results
 
         /// <param name="path">Path of file to use as body</param>
         /// <param name="useStream">Stream the data (true) or load it into a string (false)?</param>
-        public File(string path, bool useStream = false)
+        public File(string path, bool useStream)
         {
             this.path = path;
             this.useStream = useStream;

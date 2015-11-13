@@ -2,13 +2,13 @@
 using NetDotNet.API.Results;
 
 
-namespace NetDotNet.Core.IO
+namespace NetDotNet.Core.IO.Pages
 {
     internal class FlatFile : Page
     {
         private File file;
 
-        internal FlatFile(string path, bool stream)
+        internal FlatFile(string path)
         {
             file = new File(path);
         }

@@ -3,7 +3,7 @@ using NetDotNet.API.Requests;
 using NetDotNet.API.Results;
 
 
-namespace NetDotNet.Core.IO
+namespace NetDotNet.Core.IO.Pages
 {
     internal class DynamicGenerator : Page
     {
