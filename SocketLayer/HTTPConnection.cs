@@ -44,7 +44,7 @@ namespace NetDotNet.SocketLayer
             }
             catch (SocketException se)
             {
-                Core.Util.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
+                Core.Logger.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
                                                            "Details: " + se.Message });
                 Close();
             }
@@ -73,9 +73,15 @@ namespace NetDotNet.SocketLayer
                 {
                     if (parts[0] == "Content-Length")
                     {
-                        if (! short.TryParse(parts[1].Trim(), out contentLength))
+                        if (!short.TryParse(parts[1].Trim(), out contentLength))
                         {
                             // oh shit
+                        }
+
+                        if (contentLength > Core.ServerProperties.MaxRequestLength)
+                        {
+                            Core.Logger.Log()
+                            Close();
                         }
                     }
                 }
@@ -93,8 +99,9 @@ namespace NetDotNet.SocketLayer
             }
             catch (SocketException se)
             {
-                Core.Util.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
+                Core.Logger.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
                                                            "Details: " + se.Message });
+                Close();
             }
             catch (ObjectDisposedException) { Close(); }
             AcceptData();
@@ -102,7 +109,7 @@ namespace NetDotNet.SocketLayer
 
         private void Serve(Result result)
         {
-            using (StreamReader stream = result.ToRaw())
+            using (StreamReader stream = result.Body.GetStream())
             {
                 while (! stream.EndOfStream)
                 {

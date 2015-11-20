@@ -8,5 +8,6 @@ namespace NetDotNet.API.Results
         bool UseStream();
         string ToRaw();
         StreamReader GetStream();
+        short GetLength();
     }
 }

@@ -5,7 +5,7 @@ namespace NetDotNet.API.HTMLComponents
     public class Body : NonterminatingComponent
     {
 
-        public override string ToRaw()
+        public string ToRaw()
         {
             return "";
         }

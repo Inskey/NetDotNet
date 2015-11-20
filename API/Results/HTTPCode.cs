@@ -20,6 +20,11 @@ namespace NetDotNet.API.Results
                     select pp).ToList();
         }
 
+        public override string ToString()
+        {
+            return ID + ' ' + Message;
+        }
+
         public static HTTPCode Success = new HTTPCode {
             ID      = 200,
             Message = "OK" };

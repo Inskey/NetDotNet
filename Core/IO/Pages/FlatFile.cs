@@ -10,14 +10,18 @@ namespace NetDotNet.Core.IO.Pages
 
         internal FlatFile(string path)
         {
-            file = new File(path);
+            file = new File(path, ServerProperties.StreamFile(path));
         }
 
         Result Page.Get(Request request)
         {
             Result r = new Result();
+
+
+
             r.Body = file;
-            return null;
+
+            return r;
         }
     }
 }

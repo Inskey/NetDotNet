@@ -1,12 +1,19 @@
-﻿namespace NetDotNet.Core
+﻿using System.Collections.Generic;
+
+
+namespace NetDotNet.Core
 {
     static internal class ServerProperties
     {
         internal const string Version = "NetDotNet/1.0.0";
+        internal static short MaxRequestLength;
 
         internal static string Domain; // http://example.com
 
-        internal 
-
+        private static List<string> filesToStream = new List<string>();
+        internal static bool StreamFile(string path)
+        {
+            return filesToStream.Contains(path);
+        }
     }
 }

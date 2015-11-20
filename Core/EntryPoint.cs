@@ -9,6 +9,7 @@ using System.IO;
 
 namespace NetDotNet.Core
 {
+    // Entry point for application and "middle-man" class for interaction between socket layer and API
     class EntryPoint
     {
         private static Dictionary<string, Page> pages = new Dictionary<string, Page>();
@@ -41,7 +42,7 @@ namespace NetDotNet.Core
                     DynamicGenerator gen = Loader.LoadGenerator(path);
                     if (gen == null)
                     {
-                        Util.Log(LogLevel.Error, "Generator at " + path + " does not contain a valid class implementing the PageGenerator interface. It will not be loaded.");
+                        Logger.Log(LogLevel.Error, "Generator at " + path + " does not contain a valid class implementing the PageGenerator interface. It will not be loaded.");
                         return;
                     }
                     pages.Add(path, gen);
@@ -49,7 +50,7 @@ namespace NetDotNet.Core
                 }
                 catch (Exception e)
                 {
-                    Util.Log(LogLevel.Error, new[] {
+                    Logger.Log(LogLevel.Error, new[] {
                         "Encountered " + e.GetType().Name + " when loading assembly at " + path + "! It will not be loaded. Further details: ",
                         "Message: " + e.Message,
                         "Stack Trace: " + e.StackTrace

@@ -9,7 +9,7 @@
             this.text = text;
         }
 
-        public override string ToRaw()
+        public string ToRaw()
         {
             return text;
         }

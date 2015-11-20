@@ -44,7 +44,7 @@ namespace NetDotNet.SocketLayer
         }
 
         private static Action<HTTPConnection> remove;
-        internal static void RemoveConnection(HTTPConnection c)
+        internal static void RemoveConnection(HTTPConnection c) // static so that each HTTPConnection doesn't need a reference
         {
             remove(c);
         }

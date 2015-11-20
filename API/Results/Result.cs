@@ -26,8 +26,11 @@ namespace NetDotNet.API.Results
 
         internal string GetHeader()
         {
-            return null;
-            // make header here
+            string h = "HTTP/1.1 " + Code.ToString() + "\n";
+            h += "Date: " + Timestamp.ToString("R") + "\n";
+
+
+            return h;
         }
 
         internal StreamReader GetBody() // HTTPConnection sees all output as a stream whether the content is really streamed or not

@@ -1,18 +1,18 @@
-﻿using NetDotNet.API.HTMLComponents.Attributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 
 namespace NetDotNet.API.HTMLComponents
 {
-    public class Link : NonterminatingComponent
-    {        
-        public Link(LinkAttributes attr, params HTMLComponent[] subComponents)
+    public class Link : HTMLComponent
+    {
+        List<HTMLComponent> subComponents;
+
+        public Link(params HTMLComponent[] subComponents)
         {
             this.subComponents = new List<HTMLComponent>(subComponents);
-            attributes = attr;
         }
 
-        public override string ToRaw()
+        public string ToRaw()
         {
             string raw = "<a";
 

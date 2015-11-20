@@ -1,11 +1,7 @@
-﻿using NetDotNet.API.HTMLComponents.Attributes;
-
-namespace NetDotNet.API.HTMLComponents
+﻿namespace NetDotNet.API.HTMLComponents
 {
-    public abstract class HTMLComponent
+    public interface HTMLComponent
     {
-        protected AttributesAbstract attributes;
-
-        public abstract string ToRaw();
+        string ToRaw();
     }
 }
