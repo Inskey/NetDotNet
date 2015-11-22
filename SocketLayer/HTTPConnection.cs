@@ -5,18 +5,22 @@ using System.Net;
 using System;
 using System.Text;
 using System.IO;
+using NetDotNet.Core;
 
 namespace NetDotNet.SocketLayer
 {
     internal class HTTPConnection
     {
         private Socket sckt;
-        private string remoteIP;
+        internal IPAddress RemoteIP;
+        private string prefix;
 
         internal HTTPConnection(Socket s)
         {
             sckt = s;
-            remoteIP = ((IPEndPoint) sckt.RemoteEndPoint).Address.ToString() + ":" + ((IPEndPoint) sckt.RemoteEndPoint).Port.ToString();
+            IPEndPoint ep = ((IPEndPoint)sckt.RemoteEndPoint);
+            RemoteIP = ep.Address;
+            prefix = "[" + ep.Address.ToString() + ":" + ep.Port.ToString() + "] ";
             AcceptData();
             TimeoutScheduler.AddTimeout(this);
         }
@@ -27,10 +31,8 @@ namespace NetDotNet.SocketLayer
             {
                 sckt.Shutdown(SocketShutdown.Both);
                 sckt.Close();
-                sckt.Dispose();
             }
             catch (ObjectDisposedException) { }
-
 
             Listener.RemoveConnection(this);
         }
@@ -44,8 +46,8 @@ namespace NetDotNet.SocketLayer
             }
             catch (SocketException se)
             {
-                Core.Logger.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
-                                                           "Details: " + se.Message });
+                Logger.Log(LogLevel.Error, new[] { prefix + "Encountered SocketException when receiving data! Closing connection.",
+                                                   "Details: " + se.Message });
                 Close();
             }
             catch (ObjectDisposedException) { Close(); }
@@ -53,7 +55,7 @@ namespace NetDotNet.SocketLayer
 
         short bytesSoFar = 0;
         short contentLength = -1;
-        string buffer = "";
+        string line = "";
         string requestRaw = "";
         private void DataAccepted(IAsyncResult r)
         {
@@ -68,29 +70,34 @@ namespace NetDotNet.SocketLayer
 
             if (data[0] == 99)
             {
-                string[] parts = buffer.Split(':');
+                string[] parts = line.Split(':');
                 if (parts.Length == 2)
                 {
                     if (parts[0] == "Content-Length")
                     {
                         if (!short.TryParse(parts[1].Trim(), out contentLength))
                         {
-                            // oh shit
+                            Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                            Close();
                         }
-
-                        if (contentLength > Core.ServerProperties.MaxRequestLength)
+                        else if (contentLength > ServerProperties.MaxRequestLength)
                         {
-                            Core.Logger.Log()
+                            Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
+                            Close();
+                        }
+                        else if (contentLength < bytesSoFar)
+                        {
+                            Logger.Log(LogLevel.Error + "Client sent bad Content-Length (smaller than amount received so far). Closing connection.");
                             Close();
                         }
                     }
                 }
 
-                buffer = "";
+                line = "";
             }
             else
             {
-                buffer += Encoding.UTF8.GetString(data);
+                line += Encoding.UTF8.GetString(data);
             }
 
             try
@@ -99,8 +106,8 @@ namespace NetDotNet.SocketLayer
             }
             catch (SocketException se)
             {
-                Core.Logger.Log(Core.LogLevel.Error, new[] { "Encountered SocketException when receiving data from " + remoteIP + "! Closing connection.",
-                                                           "Details: " + se.Message });
+                Logger.Log(LogLevel.Error, new[] { prefix + "Encountered SocketException when receiving data! Closing connection.",
+                                                   "Details: " + se.Message });
                 Close();
             }
             catch (ObjectDisposedException) { Close(); }

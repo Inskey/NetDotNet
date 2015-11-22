@@ -7,6 +7,8 @@ namespace NetDotNet.Core
     {
         internal const string Version = "NetDotNet/1.0.0";
         internal static short MaxRequestLength;
+        internal static bool UseTarpit;
+        internal static byte MaxConnsPerIP;
 
         internal static string Domain; // http://example.com
 

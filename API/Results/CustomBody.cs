@@ -33,5 +33,10 @@ namespace NetDotNet.API.Results
         {
             return stream;
         }
+
+        public short GetLength()
+        {
+
+        }
     }
 }

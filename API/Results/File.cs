@@ -37,5 +37,10 @@ namespace NetDotNet.API.Results
         {
             return new StreamReader(System.IO.File.OpenRead(path));
         }
+
+        public short GetLength()
+        {
+
+        }
     }
 }

@@ -2,7 +2,7 @@
 using System.Net;
 using System;
 using System.Collections.Generic;
-
+using NetDotNet.Core;
 
 namespace NetDotNet.SocketLayer
 {
@@ -10,11 +10,12 @@ namespace NetDotNet.SocketLayer
     {
         private Socket s;
         private List<HTTPConnection> connections = new List<HTTPConnection>();
+        private Dictionary<IPAddress, byte> connsPerIP = new Dictionary<IPAddress, byte>();
 
         internal Listener()
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            remove = c => connections.Remove(c);
+            remove = c => RemoveConnection_(c);
         }
 
         internal void Open(IPAddress address = null, int port = 80)
@@ -30,7 +31,7 @@ namespace NetDotNet.SocketLayer
 
         internal void Close()
         {
-            foreach (HTTPConnection conn in connections)
+            foreach (var conn in connections)
             {
                 conn.Close();
             }
@@ -49,6 +50,12 @@ namespace NetDotNet.SocketLayer
             remove(c);
         }
 
+        private void RemoveConnection_(HTTPConnection c)
+        {
+            connections.Remove(c);
+            connsPerIP[c.]
+        }
+
         private void AcceptConnection()
         {
             try
@@ -63,12 +70,23 @@ namespace NetDotNet.SocketLayer
             HTTPConnection conn;
             try
             {
-                conn = new HTTPConnection(s.EndAccept(r));
-                Core.EntryPoint.SubscribeConnection(conn);
+                var sckt = s.EndAccept(r);
+                if (connsPerIP[((IPEndPoint) sckt.RemoteEndPoint).Address] == ServerProperties.MaxConnsPerIP)
+                {
+                    sckt.Shutdown(SocketShutdown.Both);
+                    sckt.Close();
+                }
+                else
+                {
+                    conn = new HTTPConnection(sckt);
+                    connections.Add(conn);
+                    EntryPoint.SubscribeConnection(conn);
+                }
             }
-            catch (ObjectDisposedException) { return; }
+            catch (ObjectDisposedException)
+            {
 
-            connections.Add(conn);
+            }
 
             AcceptConnection();
         }
