@@ -53,7 +53,14 @@ namespace NetDotNet.SocketLayer
         private void RemoveConnection_(HTTPConnection c)
         {
             connections.Remove(c);
-            connsPerIP[c.]
+            if (connsPerIP[c.RemoteIP] == 1)
+            {
+                connsPerIP.Remove(c.RemoteIP);
+            }
+            else
+            {
+                connsPerIP[c.RemoteIP] = (byte)(connsPerIP[c.RemoteIP] - 1);
+            }
         }
 
         private void AcceptConnection()
@@ -80,6 +87,14 @@ namespace NetDotNet.SocketLayer
                 {
                     conn = new HTTPConnection(sckt);
                     connections.Add(conn);
+                    if (connsPerIP.ContainsKey(conn.RemoteIP))
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
                     EntryPoint.SubscribeConnection(conn);
                 }
             }
