@@ -22,5 +22,10 @@ namespace NetDotNet.API.Results
         {
             return null;
         }
+
+        public short GetLength()
+        {
+            return 0;
+        }
     }
 }

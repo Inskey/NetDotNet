@@ -4,7 +4,7 @@ using NetDotNet.API.Results;
 
 namespace NetDotNet.Core.IO.Pages
 {
-    internal class FlatFile : Page
+    internal class FlatFile : IPage
     {
         private File file;
 
@@ -13,7 +13,7 @@ namespace NetDotNet.Core.IO.Pages
             file = new File(path, ServerProperties.StreamFile(path));
         }
 
-        Result Page.Get(Request request)
+        Result IPage.Get(Request request)
         {
             Result r = new Result();
 

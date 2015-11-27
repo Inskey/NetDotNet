@@ -4,7 +4,8 @@ using NetDotNet.API.Requests;
 
 namespace NetDotNet.Core.IO.Pages
 {
-    internal interface Page
+    // Common point between flat files and dynamic content generators
+    internal interface IPage
     {
         Result Get(Request request);
     }

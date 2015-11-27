@@ -38,8 +38,8 @@ namespace NetDotNet.SocketLayer
 
             try
             {
+                s.EndAccept(null);
                 s.Close();
-                s.Dispose();
             }
             catch (ObjectDisposedException) { }
         }
@@ -69,7 +69,11 @@ namespace NetDotNet.SocketLayer
             {
                 s.BeginAccept(ConnectedCallback, s);
             }
-            catch (ObjectDisposedException) { }
+            catch (ObjectDisposedException ode)
+            {
+                Logger.Log(LogLevel.Severe, new[] { "Encountered ObjectDisposedException when accepting new connections! Perhaps this was just a flook. Closing listener.",
+                                                    "Details: " + ode.Message });
+            }
         }
 
         private void ConnectedCallback(IAsyncResult r)
@@ -89,11 +93,11 @@ namespace NetDotNet.SocketLayer
                     connections.Add(conn);
                     if (connsPerIP.ContainsKey(conn.RemoteIP))
                     {
-
+                        connsPerIP[conn.RemoteIP] = (byte)(connsPerIP[conn.RemoteIP] + 1);
                     }
                     else
                     {
-
+                        connsPerIP.Add(conn.RemoteIP, 1);
                     }
                     EntryPoint.SubscribeConnection(conn);
                 }

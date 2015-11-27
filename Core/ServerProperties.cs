@@ -9,10 +9,11 @@ namespace NetDotNet.Core
         internal static short MaxRequestLength;
         internal static bool UseTarpit;
         internal static byte MaxConnsPerIP;
+        internal static long RequestTimeout;
 
-        internal static string Domain; // http://example.com
+        internal static string Domain; // for example, http://example.com/
 
-        private static List<string> filesToStream = new List<string>();
+        private static List<string> filesToStream = new List<string>(); // Files that should be sent using a FileStream rather than kept in memory, recommended for larger files
         internal static bool StreamFile(string path)
         {
             return filesToStream.Contains(path);

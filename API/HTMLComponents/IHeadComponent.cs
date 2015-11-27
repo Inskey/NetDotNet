@@ -1,6 +1,6 @@
 ﻿namespace NetDotNet.API.HTMLComponents
 {
-    public interface HeadComponent : HTMLComponent
+    public interface IHeadComponent : IHTMLComponent
     {
 
     }

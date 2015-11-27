@@ -13,7 +13,7 @@ namespace NetDotNet.API.Resources
             
         }
 
-        public override HTMLComponent Get(Request request)
+        public override IHTMLComponent Get(Request request)
         {
             return new TextComponent(Encoding.UTF8.GetString(File.ReadAllBytes(Path)));
         }

@@ -36,7 +36,7 @@ namespace NetDotNet.API.Results
 
         public short GetLength()
         {
-
+            return 0;
         }
     }
 }

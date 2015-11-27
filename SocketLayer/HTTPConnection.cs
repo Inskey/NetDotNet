@@ -25,6 +25,12 @@ namespace NetDotNet.SocketLayer
             TimeoutScheduler.AddTimeout(this);
         }
 
+        internal void Timeout()
+        {
+            Logger.Log(LogLevel.Error, prefix + "Client took too long to send the request. Disconnecting.");
+            Close();
+        }
+
         internal void Close()
         {
             try
@@ -35,6 +41,7 @@ namespace NetDotNet.SocketLayer
             catch (ObjectDisposedException) { }
 
             Listener.RemoveConnection(this);
+            Logger.Log(prefix + "Connection closed.");
         }
 
         private byte[] data = new byte[1];
@@ -110,18 +117,30 @@ namespace NetDotNet.SocketLayer
                                                    "Details: " + se.Message });
                 Close();
             }
-            catch (ObjectDisposedException) { Close(); }
+            catch (ObjectDisposedException ode)
+            {
+                Logger.Log(LogLevel.Error, new[] { prefix + "Encountered ObjectDisposedException when receiving data! Closing connection.",
+                                                   "Details: " + ode.Message });
+                Close();
+            }
             AcceptData();
         }
 
         private void Serve(Result result)
         {
+            sckt.Send(Encoding.ASCII.GetBytes(result.GetHeader()));
+
             using (StreamReader stream = result.Body.GetStream())
             {
                 while (! stream.EndOfStream)
                 {
                     sckt.Send(new[] { (byte)stream.Read() });
                 }
+            }
+
+            if (! result.Keep_Alive.Value)
+            {
+                Close();
             }
         }
 

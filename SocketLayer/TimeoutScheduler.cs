@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Collections.Concurrent;
+using NetDotNet.Core;
 
 namespace NetDotNet.SocketLayer
 {
@@ -24,7 +25,7 @@ namespace NetDotNet.SocketLayer
                 foreach (KeyValuePair<long, HTTPConnection> p in timeouts
                     .Where(l => l.Key > ms))
                 {
-                    p.Value.Close();
+                    p.Value.Timeout();
                 }
                     
                 Thread.Sleep(100);
@@ -33,7 +34,7 @@ namespace NetDotNet.SocketLayer
 
         internal static void AddTimeout(HTTPConnection conn)
         {
-            timeouts.TryAdd(GetMS() + 2000, conn);
+            timeouts.TryAdd(GetMS() + ServerProperties.RequestTimeout, conn);
         }
 
         internal static void Kill()

@@ -10,8 +10,6 @@ namespace NetDotNet.API.Results
         private bool useStream;
         private string content;
 
-        /// <param name="path">Path of file to use as body</param>
-        /// <param name="useStream">Stream the data (true) or load it into a string (false)?</param>
         public File(string path, bool useStream)
         {
             this.path = path;
@@ -40,7 +38,7 @@ namespace NetDotNet.API.Results
 
         public short GetLength()
         {
-
+            return 0;
         }
     }
 }

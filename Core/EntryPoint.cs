@@ -3,6 +3,7 @@ using NetDotNet.SocketLayer;
 using NetDotNet.Core.IO.Pages;
 using NetDotNet.API.Requests;
 using NetDotNet.API.Results;
+using NetDotNet.Core.UI;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,74 +13,116 @@ namespace NetDotNet.Core
     // Entry point for application and "middle-man" class for interaction between socket layer and API
     class EntryPoint
     {
-        private static Dictionary<string, Page> pages = new Dictionary<string, Page>();
-        private static Dictionary<string, Page> resources = new Dictionary<string, Page>();
-        private static Dictionary<HTTPCode, Page> specials = new Dictionary<HTTPCode, Page>();
+        private static ITerminal term;
+
+        private static Dictionary<string, IPage> pages = new Dictionary<string, IPage>();
+        private static Dictionary<string, IPage> resources = new Dictionary<string, IPage>();
+        private static Dictionary<HTTPCode, IPage> specials = new Dictionary<HTTPCode, IPage>();
 
         public static void Main(string[] args)
         {
-            
-        }
-
-        private static void LoadPages()
-        {
-            if (Directory.Exists("pages"))
+            // Set up logger depending on OS - Sorry Mac users
+            if (Util.IsLinux())
             {
-                
+                term = new LinTerminal();
+                Logger.SetTerminal(term);
             }
             else
             {
-                Directory.CreateDirectory("pages");
+                term = new WinTerminal();
+                term.Init();
+                Logger.SetTerminal(term);
+            }
+            Logger.Log("Terminal set up for " + (Util.IsLinux() ? "Linux" : "Windows") + ".");
+
+            Logger.Log("Loading pages...");
+            short amount = LoadPages();
+            Logger.Log("Loaded " + amount + " pages.");
+
+            Logger.Log("Loading resources...");
+            amount = LoadResources();
+            Logger.Log("Loaded " + amount + " resources.");
+
+            //Logger.Log("Loading special pages...");
+            //LoadSpecials();
+            //Logger.Log("All specials loaded.");
+
+            ConsoleLoop();
+        }
+
+        private static short LoadPages()
+        {
+            if (Directory.Exists("Pages"))
+            {
+                short a = 0;
+                foreach (var p in Util.ListAllFiles("Pages"))
+                {
+                    if (LoadPage(p)) a++;
+                }
+                return a;
+            }
+            else
+            {
+                Logger.Log("Creating /Pages directory.");
+                Directory.CreateDirectory("Pages");
+                return 0;
             }
         }
 
-        private static void LoadPage(string path)
+        private static bool LoadPage(string path)
         {
             if (path.EndsWith(".dll"))
             {
-                try
+                DynamicGenerator gen = Loader.LoadGenerator(path);
+                if (gen == null)
                 {
-                    DynamicGenerator gen = Loader.LoadGenerator(path);
-                    if (gen == null)
-                    {
-                        Logger.Log(LogLevel.Error, "Generator at " + path + " does not contain a valid class implementing the PageGenerator interface. It will not be loaded.");
-                        return;
-                    }
-                    pages.Add(path, gen);
-
+                    return false;
                 }
-                catch (Exception e)
-                {
-                    Logger.Log(LogLevel.Error, new[] {
-                        "Encountered " + e.GetType().Name + " when loading assembly at " + path + "! It will not be loaded. Further details: ",
-                        "Message: " + e.Message,
-                        "Stack Trace: " + e.StackTrace
-                    });
-                }
+                pages.Add(path, gen);
+                return true;
             }
             else
             {
                 pages.Add(path, Loader.LoadFlat(path));
+                return true;
             }
         }
 
 
-        private static void LoadResources()
+        private static short LoadResources()
         {
-
+            return 0;
         }
 
         private static void LoadSpecials()
         {
-            if (! Directory.Exists("specials"))
+            if (! Directory.Exists("Specials"))
             {
-                Directory.CreateDirectory("specials");
+                Directory.CreateDirectory("Specials");
             }
 
             foreach (HTTPCode code in HTTPCode.ListSpecials())
             {
                 specials.Add(code, Loader.LoadOrCreateSpecial(code));
             }
+        }
+
+        private static void ConsoleLoop()
+        {
+            while (true)
+            {
+                string line = term.ReadLine();
+
+                if (line == "exit")
+                {
+                    break;
+                }
+            }
+
+            term.Deinit();
+            Console.Clear();
+
+
         }
 
         internal static void SubscribeConnection(HTTPConnection c)
@@ -89,13 +132,19 @@ namespace NetDotNet.Core
 
         private static void OnRequest(Request r, HTTPConnection.RequestCompleteHandler callback)
         {
-            Page p;
+            IPage p;
             if (! pages.TryGetValue(r.URI, out p))
             {
                 p = specials[HTTPCode.NotFound];
             }
 
-            callback(p.Get(r));
+            var res = p.Get(r);
+            if (res.Keep_Alive == null)
+            {
+                res.Keep_Alive = r.Keep_Alive; // Unless the page specifically accepted or denied keeping the connection open, go with what the client asked.
+            }
+
+            callback(res);
         }
     }
 }

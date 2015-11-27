@@ -5,16 +5,17 @@ using NetDotNet.API.Results;
 
 namespace NetDotNet.Core.IO.Pages
 {
-    internal class DynamicGenerator : Page
+    // Wrapper around PageGenerator
+    internal class DynamicGenerator : IPage
     {
-        private PageGenerator generator;
+        private IPageGenerator generator;
 
-        internal DynamicGenerator(PageGenerator gen)
+        internal DynamicGenerator(IPageGenerator gen)
         {
             generator = gen;
         }
 
-        Result Page.Get(Request request)
+        Result IPage.Get(Request request)
         {
             return generator.Get(request);
         }

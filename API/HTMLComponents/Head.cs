@@ -1,6 +1,6 @@
 ﻿namespace NetDotNet.API.HTMLComponents
 {
-    public class Head : NonterminatingComponent
+    public class Head : IHTMLComponent
     {
         public Head()
         {

@@ -12,6 +12,6 @@
         public string URI;  // "/example.mp4"
         public string URL;  // "http://example.com/example.mp4"
 
-        public abstract HTMLComponents.HTMLComponent Get(Requests.Request request = null);
+        public abstract HTMLComponents.IHTMLComponent Get(Requests.Request request = null);
     }
 }

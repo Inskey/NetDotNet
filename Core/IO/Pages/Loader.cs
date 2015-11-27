@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using System;
 
+
 namespace NetDotNet.Core.IO.Pages
 {
     internal static class Loader
@@ -51,7 +52,7 @@ namespace NetDotNet.Core.IO.Pages
                 Logger.Log(LogLevel.Error, "The assembly at " + path + " did not contain any classes, and will not be loaded.");
                 return null;
             }
-            classes = classes.Where(a => a.GetInterfaces().Contains(typeof(PageGenerator))).ToList();
+            classes = classes.Where(a => a.GetInterfaces().Contains(typeof(IPageGenerator))).ToList();
             if (classes.Count() == 0)
             {
                 Logger.Log(LogLevel.Error, "The assembly at " + path + " did not contain any classes implementing the NetDotNet.API.PageGenerator interface. It will not be loaded.");
@@ -66,7 +67,7 @@ namespace NetDotNet.Core.IO.Pages
             return new FlatFile(path);
         }
 
-        internal static Page LoadOrCreateSpecial(HTTPCode code)
+        internal static IPage LoadOrCreateSpecial(HTTPCode code)
         {
             string loc = "specials/" + code.SpecialLocation;
             if (System.IO.File.Exists(loc + ".dll"))
@@ -79,7 +80,15 @@ namespace NetDotNet.Core.IO.Pages
             }
             else
             {
-                // get from /Specials
+                using (var r = Assembly.GetExecutingAssembly().GetManifestResourceStream("NetDotNet.Core.IO.Pages.DefaultSpecials." + code.SpecialLocation + ".html"))
+                {
+                    using (var fos = new FileStream(loc, FileMode.Create))
+                    {
+                        r.CopyTo(fos);
+                    }
+                }
+
+                return LoadFlat(loc + ".html");
             }
         }
     }

@@ -9,15 +9,26 @@ namespace NetDotNet.API.Results
         public HTTPCode Code = HTTPCode.Success;
 
         public DateTime Timestamp = DateTime.Now;
-        // connection open/close?
+        public bool? Keep_Alive = null;
 
         public readonly string Server = Core.ServerProperties.Version;
         // accept-ranges?
 
-        public string[] Content_Type = { "text/html" };
+        public string Content_Type = "text/html";
         public DateTime Last_Modified; // how do we want to keep up with this?
 
-        public ResultBody Body;
+        private ResultBody body;
+        public ResultBody Body {
+            get
+            {
+                return body;
+            }
+            set
+            {
+                body = value;
+
+            }
+        }
 
         public Result()
         {
@@ -26,9 +37,11 @@ namespace NetDotNet.API.Results
 
         internal string GetHeader()
         {
-            string h = "HTTP/1.1 " + Code.ToString() + "\n";
-            h += "Date: " + Timestamp.ToString("R") + "\n";
-
+            string h = "HTTP/1.1 " + Code.ToString() + "\r\n"; // HTTP requires carriage returns
+            h += "Date: " + Timestamp.ToString("R") + "\r\n";
+            h += "Connection: " + (Keep_Alive.Value ? "keep-alive" : "close") + "\r\n";
+            h += "Server: " + Server + "\r\n";
+            h += "";
 
             return h;
         }

@@ -1,6 +1,6 @@
 ﻿namespace NetDotNet.API.HTMLComponents
 {
-    public class TextComponent : HTMLComponent
+    public class TextComponent : IHTMLComponent
     {
         private string text;
 

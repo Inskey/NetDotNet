@@ -22,6 +22,6 @@ namespace NetDotNet.API.Requests
         public List<string> Accept_Language;
         public List<string> Accept_Encoding;
         public List<string> Accept_Charset;
-        public bool Keep_Connection_Alive;
+        public bool Keep_Alive;
     }
 }

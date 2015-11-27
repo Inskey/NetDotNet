@@ -3,13 +3,13 @@
 
 namespace NetDotNet.API.HTMLComponents
 {
-    public class Link : HTMLComponent
+    public class Link : IHTMLComponent
     {
-        List<HTMLComponent> subComponents;
+        List<IHTMLComponent> subComponents;
 
-        public Link(params HTMLComponent[] subComponents)
+        public Link(params IHTMLComponent[] subComponents)
         {
-            this.subComponents = new List<HTMLComponent>(subComponents);
+            this.subComponents = new List<IHTMLComponent>(subComponents);
         }
 
         public string ToRaw()

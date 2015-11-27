@@ -1,6 +1,6 @@
 ﻿namespace NetDotNet.API.HTMLComponents
 {
-    public interface HTMLComponent
+    public interface IHTMLComponent
     {
         string ToRaw();
     }

@@ -2,7 +2,7 @@
 
 namespace NetDotNet.API.HTMLComponents
 {
-    public class Body : NonterminatingComponent
+    public class Body : IHTMLComponent
     {
 
         public string ToRaw()
