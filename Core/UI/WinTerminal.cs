@@ -61,6 +61,7 @@ namespace NetDotNet.Core.UI
                     readline_event.Set();
                     Thread.Sleep(10);
                     readline_event.Reset();
+                    (this as ITerminal).WriteLine(read_buffer);
                     read_buffer = "";
                 }
                 else if (k.Key == ConsoleKey.Backspace )
