@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetDotNet.Core.UI
 {
-    // Since Mono will not cause writes to override what is being typed, this is just a wrapper around Console.
+    // Major issues with this -- command buffer and such needs to be made, probably going to have to copy over some code from WinTerminal
     class LinTerminal : ITerminal
     {
         void ITerminal.Init()

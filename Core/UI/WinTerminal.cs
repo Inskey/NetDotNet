@@ -11,9 +11,19 @@ namespace NetDotNet.Core.UI
         private bool alive;
 
         private List<string> display_lines = new List<string>();
+        private List<string> prev_cmds = new List<string>();
+        private int index = -1;
 
         private string read_buffer = "";
+        private int cursor = 1;
         private ManualResetEventSlim readline_event = new ManualResetEventSlim(false);
+
+        private char[] valid_chars = {
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+            ' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '[', ']', '{', '}', '|', '\\', ';', ':', '\'', '"', '<', '>', ',', '.', '?', '/'
+        };
 
 
         void ITerminal.Init()
@@ -46,6 +56,7 @@ namespace NetDotNet.Core.UI
 
                 Console.WriteLine();
                 Console.Write(">" + read_buffer);
+                Console.CursorLeft = cursor;
             }
 
         }
@@ -58,29 +69,105 @@ namespace NetDotNet.Core.UI
 
                 if (k.Key == ConsoleKey.Enter)
                 {
+                    if (read_buffer == "") continue;
+
+                    (this as ITerminal).WriteLine(">>>" + read_buffer);
+
                     readline_event.Set();
                     Thread.Sleep(10);
                     readline_event.Reset();
-                    (this as ITerminal).WriteLine(read_buffer);
+
+                    index = -1;
+                    if (prev_cmds.Count == 0 || read_buffer != prev_cmds[0]) prev_cmds.Insert(0, read_buffer);
+
+                    cursor = 1;
+
                     read_buffer = "";
                 }
-                else if (k.Key == ConsoleKey.Backspace )
+                else if (k.Key == ConsoleKey.Backspace)
                 {
-                    if (read_buffer.Length == 0)
+                    if (cursor == 1)
                     {
                         Console.Beep();
                     }
                     else
                     {
-                        read_buffer = read_buffer.Remove(read_buffer.Length - 1);
+                        cursor--;
+                        read_buffer = read_buffer.Remove(cursor - 1, 1);
+                    }
+                }
+                else if (k.Key == ConsoleKey.Delete)
+                {
+                    if (cursor == read_buffer.Length + 1)
+                    {
+                        Console.Beep();
+                    }
+                    else
+                    {
+                        read_buffer = read_buffer.Remove(cursor - 1, 1);
                     }
                 }
                 else if (k.Key == ConsoleKey.Escape)
                 {
+                    cursor = 1;
                     read_buffer = "";
                 }
-                else
+                else if (k.Key == ConsoleKey.UpArrow)
                 {
+                    if (index == prev_cmds.Count - 1)
+                    {
+                        Console.Beep();
+                    }
+                    else
+                    {
+                        index++;
+                        read_buffer = prev_cmds[index];
+                        cursor = read_buffer.Length + 1;
+                    }
+                }
+                else if (k.Key == ConsoleKey.DownArrow)
+                {
+                    if (index == -1)
+                    {
+                        Console.Beep();
+                    }
+                    else if (index == 0)
+                    {
+                        index--;
+                        read_buffer = "";
+                    }
+                    else
+                    {
+                        index--;
+                        read_buffer = prev_cmds[index];
+                        cursor = read_buffer.Length + 1;
+                    }
+                }
+                else if (k.Key == ConsoleKey.LeftArrow)
+                {
+                    if (Console.CursorLeft > 1)
+                    {
+                        cursor--;
+                    }
+                    else
+                    {
+                        Console.Beep();
+                    }
+                }
+                else if (k.Key == ConsoleKey.RightArrow)
+                {
+                    if (Console.CursorLeft <= read_buffer.Length)
+                    {
+                        cursor++;
+                    }
+                    else
+                    {
+                        Console.Beep();
+                    }
+                }
+                else if (valid_chars.Contains(k.KeyChar))
+                {
+                    cursor++;
                     read_buffer += k.KeyChar;
                 }
 

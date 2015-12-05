@@ -15,38 +15,40 @@ namespace NetDotNet.Core
     {
         private static ITerminal term;
 
+        private static Listener listener;
+
         private static Dictionary<string, IPage> pages = new Dictionary<string, IPage>();
         private static Dictionary<string, IPage> resources = new Dictionary<string, IPage>();
         private static Dictionary<HTTPCode, IPage> specials = new Dictionary<HTTPCode, IPage>();
 
         public static void Main(string[] args)
         {
-            // Set up logger depending on OS - Sorry Mac users
-            if (Util.IsLinux())
-            {
-                term = new LinTerminal();
-                Logger.SetTerminal(term);
-            }
-            else
-            {
-                term = new WinTerminal();
-                term.Init();
-                Logger.SetTerminal(term);
-            }
+            // Set up logger depending on OS
+            term = (Util.IsLinux() ? (ITerminal) new LinTerminal() : new WinTerminal());
+            term.Init();
+            Logger.SetTerminal(term);
             Logger.Log("Terminal set up for " + (Util.IsLinux() ? "Linux" : "Windows") + ".");
 
+            // Load all the pages
             Logger.Log("Loading pages...");
             short amount = LoadPages();
             Logger.Log("Loaded " + amount + " pages.");
 
+            // Load all the resources
             Logger.Log("Loading resources...");
             amount = LoadResources();
             Logger.Log("Loaded " + amount + " resources.");
 
+            // Load special pages, or copy them to the filesystem if they don't exist
             //Logger.Log("Loading special pages...");
             //LoadSpecials();
             //Logger.Log("All specials loaded.");
 
+            // Start listening for HTTP connections
+            listener = new Listener();
+            listener.Open();
+
+            // Main thread becomes the command line thread
             ConsoleLoop();
         }
 

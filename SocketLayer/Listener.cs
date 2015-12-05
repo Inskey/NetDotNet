@@ -20,6 +20,7 @@ namespace NetDotNet.SocketLayer
 
         internal void Open(IPAddress address = null, int port = 80)
         {
+            Logger.Log("Opening port...");
             if (address == null)
             {
                 address = IPAddress.Parse("127.0.0.1");
@@ -27,6 +28,7 @@ namespace NetDotNet.SocketLayer
             s.Bind(new IPEndPoint(address, port));
             s.Listen(10);
             AcceptConnection();
+            Logger.Log("Listening on " + address + ":" + port + ".");
         }
 
         internal void Close()
@@ -78,28 +80,27 @@ namespace NetDotNet.SocketLayer
 
         private void ConnectedCallback(IAsyncResult r)
         {
-            HTTPConnection conn;
             try
             {
                 var sckt = s.EndAccept(r);
-                if (connsPerIP[((IPEndPoint) sckt.RemoteEndPoint).Address] == ServerProperties.MaxConnsPerIP)
+                var addr = ((IPEndPoint) sckt.RemoteEndPoint).Address;
+                if (connsPerIP.ContainsKey(addr))
                 {
-                    sckt.Shutdown(SocketShutdown.Both);
-                    sckt.Close();
-                }
-                else
-                {
-                    conn = new HTTPConnection(sckt);
-                    connections.Add(conn);
-                    if (connsPerIP.ContainsKey(conn.RemoteIP))
+                    if (connsPerIP[addr] == ServerProperties.MaxConnsPerIP)
                     {
-                        connsPerIP[conn.RemoteIP] = (byte)(connsPerIP[conn.RemoteIP] + 1);
+                        sckt.Shutdown(SocketShutdown.Both);
+                        sckt.Close();
                     }
                     else
                     {
-                        connsPerIP.Add(conn.RemoteIP, 1);
+                        AllowConn(sckt);
+                        connsPerIP[addr]++;
                     }
-                    EntryPoint.SubscribeConnection(conn);
+                }
+                else
+                {
+                    AllowConn(sckt);
+                    connsPerIP.Add(addr, 1);
                 }
             }
             catch (ObjectDisposedException)
@@ -108,6 +109,13 @@ namespace NetDotNet.SocketLayer
             }
 
             AcceptConnection();
+        }
+
+        private void AllowConn(Socket sckt)
+        {
+            HTTPConnection conn = new HTTPConnection(sckt);
+            connections.Add(conn);
+            EntryPoint.SubscribeConnection(conn);
         }
     }
 }

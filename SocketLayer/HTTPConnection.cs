@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using System.IO;
 using NetDotNet.Core;
+using System.Threading;
 
 namespace NetDotNet.SocketLayer
 {
@@ -134,7 +135,11 @@ namespace NetDotNet.SocketLayer
             {
                 while (! stream.EndOfStream)
                 {
-                    sckt.Send(new[] { (byte)stream.Read() });
+                    for (byte i = 0; i < 10 && ! stream.EndOfStream; i++)
+                    {
+                        sckt.Send(new[] { (byte)stream.Read() });
+                    }
+                    Thread.Sleep(1);
                 }
             }
 
