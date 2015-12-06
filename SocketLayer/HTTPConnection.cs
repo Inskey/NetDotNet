@@ -37,7 +37,7 @@ namespace NetDotNet.SocketLayer
             try
             {
                 sckt.Shutdown(SocketShutdown.Both);
-                sckt.Close();
+                sckt.Close(0);
             }
             catch (ObjectDisposedException) { }
 
@@ -76,36 +76,40 @@ namespace NetDotNet.SocketLayer
 
             requestRaw += Encoding.UTF8.GetString(data);
 
-            if (data[0] == 99)
+            // If data is a 13 (carriage return), there should be a 10 (linefeed) after it, therefore we can just skip handling the 10 (but still add it to requestRaw)
+            if (data[0] == 10) 
             {
-                string[] parts = line.Split(':');
-                if (parts.Length == 2)
+                if (data[0] == 13)
                 {
-                    if (parts[0] == "Content-Length")
+                    string[] parts = line.Split(':');
+                    if (parts.Length == 2)
                     {
-                        if (!short.TryParse(parts[1].Trim(), out contentLength))
+                        if (parts[0] == "Content-Length")
                         {
-                            Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
-                            Close();
-                        }
-                        else if (contentLength > ServerProperties.MaxRequestLength)
-                        {
-                            Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
-                            Close();
-                        }
-                        else if (contentLength < bytesSoFar)
-                        {
-                            Logger.Log(LogLevel.Error + "Client sent bad Content-Length (smaller than amount received so far). Closing connection.");
-                            Close();
+                            if (!short.TryParse(parts[1].Trim(), out contentLength))
+                            {
+                                Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                                Close();
+                            }
+                            else if (contentLength > ServerProperties.MaxRequestLength)
+                            {
+                                Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
+                                Close();
+                            }
+                            else if (contentLength < bytesSoFar)
+                            {
+                                Logger.Log(LogLevel.Error + "Client sent bad Content-Length (smaller than amount received so far). Closing connection.");
+                                Close();
+                            }
                         }
                     }
-                }
 
-                line = "";
-            }
-            else
-            {
-                line += Encoding.UTF8.GetString(data);
+                    line = "";
+                }
+                else
+                {
+                    line += Encoding.UTF8.GetString(data);
+                }
             }
 
             try
@@ -124,6 +128,8 @@ namespace NetDotNet.SocketLayer
                                                    "Details: " + ode.Message });
                 Close();
             }
+
+            sckt.EndReceive(r);
             AcceptData();
         }
 

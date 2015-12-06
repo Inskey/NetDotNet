@@ -7,7 +7,11 @@ namespace NetDotNet.API.Requests
     {
         internal Request(string raw)
         {
+            string line;
+            while ((line = raw.Substring(0, raw.IndexOf("\r\n"))) != null)
+            {
 
+            }
         }
 
         public RequestType Type;

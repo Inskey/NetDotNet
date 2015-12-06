@@ -21,11 +21,25 @@ namespace NetDotNet.Core
         private static Dictionary<string, IPage> resources = new Dictionary<string, IPage>();
         private static Dictionary<HTTPCode, IPage> specials = new Dictionary<HTTPCode, IPage>();
 
+
         public static void Main(string[] args)
         {
             // Set up logger depending on OS
             term = (Util.IsLinux() ? (ITerminal) new LinTerminal() : new WinTerminal());
             term.Init();
+
+            term.WriteLine("                                 █████████████");
+            term.WriteLine("                             ██████████████████████");
+            term.WriteLine("                          █████             ██████████");
+            term.WriteLine("                         ██                  ██████████");
+            term.WriteLine("                                    ███");
+            term.WriteLine("                                   █████ ");
+            term.WriteLine("                                    ███");
+            term.WriteLine("                    ██████████                  ██");
+            term.WriteLine("                     ██████████             █████");
+            term.WriteLine("                        ██████████████████████");
+            term.WriteLine("                            █████████████\n\n");
+
             Logger.SetTerminal(term);
             Logger.Log("Terminal set up for " + (Util.IsLinux() ? "Linux" : "Windows") + ".");
 

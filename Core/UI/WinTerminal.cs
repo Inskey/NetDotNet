@@ -134,6 +134,7 @@ namespace NetDotNet.Core.UI
                     else if (index == 0)
                     {
                         index--;
+                        cursor = 1;
                         read_buffer = "";
                     }
                     else

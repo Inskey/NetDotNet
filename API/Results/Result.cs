@@ -41,7 +41,8 @@ namespace NetDotNet.API.Results
             h += "Date: " + Timestamp.ToString("R") + "\r\n";
             h += "Connection: " + (Keep_Alive.Value ? "keep-alive" : "close") + "\r\n";
             h += "Server: " + Server + "\r\n";
-            h += "";
+
+            h += "\r\n";
 
             return h;
         }

@@ -31,7 +31,7 @@ namespace NetDotNet.Core.IO.Pages
             catch (FileNotFoundException e)
             {
                 Logger.Log(LogLevel.Error, new[] {
-                    "Failed to load assembly at " + path + " due to FileNotFoundException. (This should in theory never happen unless a file was deleted at exactly the right moment.) Further details:",
+                    "Failed to load assembly at " + path + " due to FileNotFoundException. (This should in theory never happen.) Further details:",
                     "Message: " + e.Message,
                     "Stacktrace: " + e.StackTrace
                 });
