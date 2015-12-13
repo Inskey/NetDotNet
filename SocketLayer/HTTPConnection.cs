@@ -61,45 +61,78 @@ namespace NetDotNet.SocketLayer
             catch (ObjectDisposedException) { Close(); }
         }
 
-        short bytesSoFar = 0;
-        short contentLength = -1;
+        ulong bytesSoFar = 0;
+        bool first = true;
+        bool inBody = false;
+        RequestType type;
+        ulong contentLength;
         string line = "";
         string requestRaw = "";
         private void DataAccepted(IAsyncResult r)
         {
-            bytesSoFar++;
-            if (bytesSoFar == contentLength)
-            {
-                RequestReceived(new Request(requestRaw), Serve);
-                return;
-            }
-
             requestRaw += Encoding.UTF8.GetString(data);
 
-            // If data is a 13 (carriage return), there should be a 10 (linefeed) after it, therefore we can just skip handling the 10 (but still add it to requestRaw)
-            if (data[0] == 10) 
+            if (inBody)
             {
-                if (data[0] == 13)
+                bytesSoFar++;
+                if (bytesSoFar == contentLength)
                 {
-                    string[] parts = line.Split(':');
-                    if (parts.Length == 2)
+                    inBody = false;
+                    RequestReceived(new Request(requestRaw), Serve);
+                    return;
+                }
+            }
+            else if (data[0] != 10) // If we're not in the body, we must be in the header, so parse some necessary things. Ignore \n because it will always follow a \r.
+            {
+                if (data[0] == 13) // carriage return (\r)
+                {
+                    if (first) // if this is the first line, get the request type
                     {
-                        if (parts[0] == "Content-Length")
+                        switch (line.Split(' ')[0])
                         {
-                            if (!short.TryParse(parts[1].Trim(), out contentLength))
-                            {
-                                Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                            case "GET":
+                                type = RequestType.GET;
+                                break;
+                            case "POST":
+                                type = RequestType.POST;
+                                break;
+                            case "OPTIONS":
+                                type = RequestType.OPTIONS;
+                                break;
+                            case "HEAD":
+                                type = RequestType.HEAD;
+                                break;
+                            case "TRACE":
+                                type = RequestType.TRACE;
+                                break;
+                            default:
+                                Logger.Log(LogLevel.Error, "Client sent unsupported HTTP method: " + line.Split(' ')[0] + "! Closing connection!");
                                 Close();
-                            }
-                            else if (contentLength > ServerProperties.MaxRequestLength)
+                                return;
+                        }
+                    }
+                    else
+                    {
+                        if (line == "") // if it's a blank line, we're now in the body
+                        {
+                            inBody = true;
+                        }
+
+                        string[] parts = line.Split(':');
+                        if (parts.Length == 2)
+                        {
+                            if (parts[0] == "Content-Length")
                             {
-                                Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
-                                Close();
-                            }
-                            else if (contentLength < bytesSoFar)
-                            {
-                                Logger.Log(LogLevel.Error + "Client sent bad Content-Length (smaller than amount received so far). Closing connection.");
-                                Close();
+                                if (!ulong.TryParse(parts[1].Trim(), out contentLength))
+                                {
+                                    Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                                    Close();
+                                }
+                                else if (contentLength > ServerProperties.MaxPostLength)
+                                {
+                                    Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
+                                    Close();
+                                }
                             }
                         }
                     }
@@ -121,15 +154,16 @@ namespace NetDotNet.SocketLayer
                 Logger.Log(LogLevel.Error, new[] { prefix + "Encountered SocketException when receiving data! Closing connection.",
                                                    "Details: " + se.Message });
                 Close();
+                return;
             }
             catch (ObjectDisposedException ode)
             {
                 Logger.Log(LogLevel.Error, new[] { prefix + "Encountered ObjectDisposedException when receiving data! Closing connection.",
                                                    "Details: " + ode.Message });
                 Close();
+                return;
             }
 
-            sckt.EndReceive(r);
             AcceptData();
         }
 
@@ -141,11 +175,13 @@ namespace NetDotNet.SocketLayer
             {
                 while (! stream.EndOfStream)
                 {
-                    for (byte i = 0; i < 10 && ! stream.EndOfStream; i++)
+                    byte[] data = new byte[10];
+                    for (ushort i = 0; i < ServerProperties.BytesPerPckt && ! stream.EndOfStream; i++)
                     {
-                        sckt.Send(new[] { (byte)stream.Read() });
+                        data[i] = (byte) stream.Read();
                     }
-                    Thread.Sleep(1);
+                    sckt.Send(data);
+                    Thread.Sleep(ServerProperties.PcktDelay);
                 }
             }
 

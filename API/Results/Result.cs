@@ -12,7 +12,7 @@ namespace NetDotNet.API.Results
         public bool? Keep_Alive = null;
 
         public readonly string Server = Core.ServerProperties.Version;
-        // accept-ranges?
+        public readonly string Accept_Ranges = Core.ServerProperties.Accept_Ranges;
 
         public string Content_Type = "text/html";
         public DateTime Last_Modified; // how do we want to keep up with this?
@@ -38,24 +38,24 @@ namespace NetDotNet.API.Results
         internal string GetHeader()
         {
             string h = "HTTP/1.1 " + Code.ToString() + "\r\n"; // HTTP requires carriage returns
-            h += "Date: " + Timestamp.ToString("R") + "\r\n";
+            h += "Date: " + Timestamp.ToString("R") + "\r\n"; // "R" indicates the same format HTTP requires
             h += "Connection: " + (Keep_Alive.Value ? "keep-alive" : "close") + "\r\n";
             h += "Server: " + Server + "\r\n";
 
-            h += "\r\n";
+            h += "\r\n"; // Blank line to separate header from body
 
             return h;
         }
 
         internal StreamReader GetBody() // HTTPConnection sees all output as a stream whether the content is really streamed or not
         {
-            if (Body.UseStream())
+            if (Body.KeptInMemory())
             {
-                return Body.GetStream();
+                return Core.Util.StringStream(Body.ToRaw());
             }
             else
             {
-                return Core.Util.StringStream(Body.ToRaw());
+                return Body.GetStream();
             }
         }
     }

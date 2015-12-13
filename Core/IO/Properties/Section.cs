@@ -1,6 +1,6 @@
 ﻿namespace NetDotNet.Core.IO.Properties
 {
-    internal class PropertiesFile
+    internal class Section
     {
 
     }

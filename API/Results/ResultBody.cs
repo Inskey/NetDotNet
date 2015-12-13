@@ -5,9 +5,10 @@ namespace NetDotNet.API.Results
 {
     public interface ResultBody
     {
-        bool UseStream();
-        string ToRaw();
+        bool KeptInMemory();
+        byte[] ToRaw();
         StreamReader GetStream();
-        short GetLength();
+        ulong GetLength();
+        void Unload();
     }
 }

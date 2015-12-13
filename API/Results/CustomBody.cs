@@ -1,42 +1,65 @@
-﻿using System.IO;
+﻿using NetDotNet.Core;
+using System.IO;
+using System.Text;
+
 
 namespace NetDotNet.API.Results
 {
     public class CustomBody : ResultBody
     {
-        private string raw;
-        private StreamReader stream;
-        private bool useStream;
+        private byte[] raw;
+        private Stream stream;
+        private bool inMemory;
 
         public CustomBody(string raw)
         {
-            this.raw = raw;
-            useStream = false;
+            this.raw = Encoding.UTF8.GetBytes(raw);
+            inMemory = true;
         }
         public CustomBody(Stream s)
         {
-            stream = new StreamReader(s);
-            useStream = true;
+            stream = s;
+            inMemory = false;
         }
-
-        public bool UseStream()
+        public CustomBody(byte[] raw)
         {
-            return useStream;
+            this.raw = raw;
+            inMemory = true;
         }
 
-        public string ToRaw()
+        public bool KeptInMemory()
+        {
+            return inMemory;
+        }
+
+        public byte[] ToRaw()
         {
             return raw;
         }
 
         public StreamReader GetStream()
         {
-            return stream;
+            return new StreamReader(stream);
         }
 
-        public short GetLength()
+        public ulong GetLength()
         {
-            return 0;
+            if (inMemory)
+            {
+                return (ulong) raw.Length;
+            }
+            else
+            {
+                return GetStream().Length();
+            }
+        }
+
+        public void Unload()
+        {
+            if (stream != null)
+            {
+                stream.Close();
+            }
         }
     }
 }

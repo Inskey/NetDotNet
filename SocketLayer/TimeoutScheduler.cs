@@ -44,7 +44,7 @@ namespace NetDotNet.SocketLayer
 
         private static long GetMS()
         {
-            return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            return  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
     }
 }

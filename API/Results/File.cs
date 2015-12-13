@@ -1,5 +1,5 @@
-﻿using System.IO;
-using System.Text;
+﻿using NetDotNet.Core;
+using System.IO;
 
 
 namespace NetDotNet.API.Results
@@ -7,26 +7,34 @@ namespace NetDotNet.API.Results
     public class File : ResultBody
     {
         private string path;
-        private bool useStream;
-        private string content;
+        private bool loadInMemory;
+        private byte[] content;
+        private FileStream stream;
+        private ulong length;
 
-        public File(string path, bool useStream)
+        public File(string path, bool loadInMemory = false)
         {
             this.path = path;
-            this.useStream = useStream;
+            this.loadInMemory = loadInMemory;
 
-            if (! useStream)
+            if (loadInMemory)
             {
-                content = Encoding.UTF8.GetString(System.IO.File.ReadAllBytes(path));
+                content = System.IO.File.ReadAllBytes(path);
+                length = (ulong) content.LongLength;
+            }
+            else
+            {
+                stream = System.IO.File.Open(path, FileMode.Open, FileAccess.ReadWrite); // Make sure another program does not attempt to write 
+                length = GetStream().Length();
             }
         }
 
-        public bool UseStream()
+        public bool KeptInMemory()
         {
-            return useStream;
+            return loadInMemory;
         }
 
-        public string ToRaw() 
+        public byte[] ToRaw() 
         {
             return content;
         }
@@ -36,9 +44,14 @@ namespace NetDotNet.API.Results
             return new StreamReader(System.IO.File.OpenRead(path));
         }
 
-        public short GetLength()
+        public ulong GetLength()
         {
-            return 0;
+            return length;
+        }
+
+        public void Unload()
+        {
+            stream.Close();
         }
     }
 }

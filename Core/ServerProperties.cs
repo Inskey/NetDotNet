@@ -3,13 +3,17 @@
 
 namespace NetDotNet.Core
 {
-    static internal class ServerProperties
+    internal static class ServerProperties
     {
         internal const string Version = "NetDotNet/1.0.0";
-        internal static short MaxRequestLength;
+        internal static ushort MaxHeaderLength;
+        internal static ulong MaxPostLength;
         internal static bool UseTarpit;
         internal static byte MaxConnsPerIP;
         internal static long RequestTimeout;
+        internal static ushort BytesPerPckt;
+        internal static int PcktDelay;
+        internal static string Accept_Ranges;
 
         internal static string Domain; // for example, http://example.com/
 

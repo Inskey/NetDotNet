@@ -1,5 +1,6 @@
 ﻿using NetDotNet.API.HTMLComponents;
 using System.IO;
+using System.Text;
 
 namespace NetDotNet.API.Results
 {
@@ -8,24 +9,35 @@ namespace NetDotNet.API.Results
         public Head head;
         public Body body;
 
-        public bool UseStream()
+        public bool KeptInMemory()
         {
-            return false;
+            return true;
         }
 
-        public string ToRaw()
+        public byte[] ToRaw()
         {
-            return head.ToRaw() + body.ToRaw();
+            return Encoding.UTF8.GetBytes(head.ToRaw() + body.ToRaw());
         }
 
         public StreamReader GetStream()
         {
-            return null;
+            MemoryStream s = new MemoryStream();
+            StreamWriter r = new StreamWriter(s);
+            byte[] b = ToRaw();
+            r.Write(b);
+            s.Flush();
+            s.Position = 0;
+            return new StreamReader(s);
         }
 
-        public short GetLength()
+        public ulong GetLength()
         {
             return 0;
+        }
+
+        public void Unload()
+        {
+
         }
     }
 }
