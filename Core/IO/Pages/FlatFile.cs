@@ -23,5 +23,10 @@ namespace NetDotNet.Core.IO.Pages
 
             return r;
         }
+
+        Result IPage.Post(Request request)
+        {
+            return null;
+        }
     }
 }

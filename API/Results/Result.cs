@@ -51,7 +51,7 @@ namespace NetDotNet.API.Results
         {
             if (Body.KeptInMemory())
             {
-                return Core.Util.StringStream(Body.ToRaw());
+                return Core.Util.ByteStream(Body.ToRaw());
             }
             else
             {

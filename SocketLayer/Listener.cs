@@ -20,7 +20,7 @@ namespace NetDotNet.SocketLayer
 
         internal void Open(IPAddress address = null, int port = 80)
         {
-            Logger.Log("Opening port...");
+            Logger.Log("Opening HTTP port...");
             if (address == null)
             {
                 address = IPAddress.Parse("127.0.0.1");

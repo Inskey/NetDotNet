@@ -16,10 +16,13 @@ namespace NetDotNet.Core
         internal static List<string> ListAllFiles(string path)
         {
             var files = new List<string>();
-            files.AddRange(Directory.GetFiles(path));
+            foreach (string f in Directory.GetFiles(path))
+            {
+                files.Add(f.Replace('\\', '/'));
+            }
             foreach (string f in Directory.GetDirectories(path))
             {
-                files.AddRange(ListAllFiles(path));
+                files.AddRange(ListAllFiles(f));
             }
             return files;
         }
@@ -32,6 +35,16 @@ namespace NetDotNet.Core
             writer.Flush();
             stream.Position = 0;
             return new StreamReader(stream);
+        }
+
+        internal static StreamReader ByteStream(byte[] data)
+        {
+            MemoryStream mstr = new MemoryStream();
+            StreamWriter wtr = new StreamWriter(mstr);
+            wtr.Write(data);
+            wtr.Flush();
+            mstr.Position = 0;
+            return new StreamReader(mstr);
         }
     }
 }

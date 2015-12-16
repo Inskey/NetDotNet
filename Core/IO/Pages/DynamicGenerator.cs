@@ -19,5 +19,10 @@ namespace NetDotNet.Core.IO.Pages
         {
             return generator.Get(request);
         }
+
+        Result IPage.Post(Request request)
+        {
+            return generator.Post(request);
+        }
     }
 }

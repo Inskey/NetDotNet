@@ -8,5 +8,6 @@ namespace NetDotNet.Core.IO.Pages
     internal interface IPage
     {
         Result Get(Request request);
+        Result Post(Request request);
     }
 }

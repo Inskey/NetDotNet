@@ -12,6 +12,7 @@ namespace NetDotNet.Core
                 str.Read();
                 len++;
             }
+            str.BaseStream.Position = 0;
             return len;
         }
     }

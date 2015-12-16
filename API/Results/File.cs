@@ -41,7 +41,7 @@ namespace NetDotNet.API.Results
 
         public StreamReader GetStream()
         {
-            return new StreamReader(System.IO.File.OpenRead(path));
+            return new StreamReader(stream);
         }
 
         public ulong GetLength()

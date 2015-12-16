@@ -64,7 +64,20 @@ namespace NetDotNet.Core.IO.Pages
 
         internal static FlatFile LoadFlat(string path)
         {
-            return new FlatFile(path);
+            Logger.Log("Loading " + path + "...");
+            try
+            {
+                return new FlatFile(path);
+            }
+            catch (IOException e)
+            {
+                Logger.Log(LogLevel.Error, new[] {
+                    "Failed to load because of IOException. Further details:",
+                    "Message: " + e.Message,
+                    "Stacktrace: " + e.StackTrace
+                });
+                return null;
+            }
         }
 
         internal static IPage LoadOrCreateSpecial(HTTPCode code)
