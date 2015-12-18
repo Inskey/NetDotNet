@@ -13,6 +13,7 @@ namespace NetDotNet.Core
         internal static long RequestTimeout;
         internal static ushort BytesPerPckt;
         internal static int PcktDelay;
+        internal static int TCPBacklog;
         internal static string Accept_Ranges;
 
         internal static string Domain; // for example, http://example.com/

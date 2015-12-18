@@ -1,5 +1,8 @@
-﻿using NetDotNet.Core;
-
+﻿using NetDotNet.API.Security;
+using NetDotNet.Core;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 
 namespace NetDotNet.API
 {
@@ -37,6 +40,13 @@ namespace NetDotNet.API
             return ServerProperties.BytesPerPckt;
         }
 
-        // 
+        // Token stuff
+        public static List<UploadToken> GetUploadTokensForIP(string addr)
+        {
+            return (from ut in EntryPoint.GetUTs()
+                    where ut.ClientIP == addr
+                    select ut)
+                    .ToList();
+        }
     }
 }

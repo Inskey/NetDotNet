@@ -46,5 +46,30 @@ namespace NetDotNet.Core
             mstr.Position = 0;
             return new StreamReader(mstr);
         }
+
+        private static Random r = new Random();
+        internal static string RandomString()
+        {
+            string s = "";
+
+            for (short i = 0; i < 32; i++)
+            {
+                int t = r.Next(3);
+                if (t == 0)
+                {
+                    s += (char) (r.Next(10) + 48); // ASCII 0-9
+                }
+                else if (t == 1)
+                {
+                    s += (char) (r.Next(24) + 65); // ASCII A-Z
+                }
+                else
+                {
+                    s += (char) (r.Next(24) + 97); // ASCII a-z (Yes, URLs are sometimes considered case-insensitive, but they should be case-sensitive)
+                }
+            }
+
+            return s;
+        }
     }
 }

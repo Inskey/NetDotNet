@@ -6,11 +6,12 @@ using System;
 using System.Text;
 using System.IO;
 using NetDotNet.Core;
+using NetDotNet.Core.Expiration;
 using System.Threading;
 
 namespace NetDotNet.SocketLayer
 {
-    internal class HTTPConnection
+    internal class HTTPConnection : IExpirable
     {
         private Socket sckt;
         internal IPAddress RemoteIP;
@@ -24,12 +25,6 @@ namespace NetDotNet.SocketLayer
             prefix = "[" + ep.Address.ToString() + ":" + ep.Port.ToString() + "] ";
             AcceptData();
             TimeoutScheduler.AddTimeout(this);
-        }
-
-        internal void Timeout()
-        {
-            Logger.Log(LogLevel.Error, prefix + "Client took too long to send the request. Disconnecting.");
-            Close();
         }
 
         internal void Close()
@@ -79,6 +74,11 @@ namespace NetDotNet.SocketLayer
                 {
                     inBody = false;
                     RequestReceived(new Request(requestRaw), Serve);
+                    bytesSoFar = 0;
+                    first = true;
+                    inBody = false;
+                    line = "";
+                    requestRaw = "";
                     return;
                 }
             }
@@ -86,7 +86,7 @@ namespace NetDotNet.SocketLayer
             {
                 if (data[0] == 13) // carriage return (\r)
                 {
-                    if (first) // if this is the first line, get the request type
+                    if (first) // if this is the first line, get the request type and check if it's trying to access an upload token
                     {
                         switch (line.Split(' ')[0])
                         {
@@ -110,6 +110,7 @@ namespace NetDotNet.SocketLayer
                                 Close();
                                 return;
                         }
+                        first = false;
                     }
                     else
                     {
@@ -189,6 +190,12 @@ namespace NetDotNet.SocketLayer
             {
                 Close();
             }
+        }
+
+        void IExpirable.Expire()
+        {
+            Logger.Log(LogLevel.Error, prefix + "Client took too long to send the request. Disconnecting.");
+            Close();
         }
 
         internal delegate void RequestCompleteHandler(Result result);

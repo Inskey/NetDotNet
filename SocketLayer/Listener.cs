@@ -20,13 +20,13 @@ namespace NetDotNet.SocketLayer
 
         internal void Open(IPAddress address = null, int port = 80)
         {
-            Logger.Log("Opening HTTP port...");
+            Logger.Log("Opening HTTP/TCP port...");
             if (address == null)
             {
                 address = IPAddress.Parse("127.0.0.1");
             }
             s.Bind(new IPEndPoint(address, port));
-            s.Listen(10);
+            s.Listen(ServerProperties.TCPBacklog);
             AcceptConnection();
             Logger.Log("Listening on " + address + ":" + port + ".");
         }
@@ -61,7 +61,7 @@ namespace NetDotNet.SocketLayer
             }
             else
             {
-                connsPerIP[c.RemoteIP] = (byte)(connsPerIP[c.RemoteIP] - 1);
+                connsPerIP[c.RemoteIP] = (byte) (connsPerIP[c.RemoteIP] - 1);
             }
         }
 
@@ -73,7 +73,7 @@ namespace NetDotNet.SocketLayer
             }
             catch (ObjectDisposedException ode)
             {
-                Logger.Log(LogLevel.Severe, new[] { "Encountered ObjectDisposedException when accepting new connections! Perhaps this was just a flook. Closing listener.",
+                Logger.Log(LogLevel.Severe, new[] { "Encountered ObjectDisposedException when accepting connections! Closing listener.",
                                                     "Details: " + ode.Message });
             }
         }
@@ -103,9 +103,10 @@ namespace NetDotNet.SocketLayer
                     connsPerIP.Add(addr, 1);
                 }
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ode)
             {
-
+                Logger.Log(LogLevel.Severe, new[] { "Encountered ObjectDisposedException when accepting connections! Closing listener.",
+                                                    "Details: " + ode.Message });
             }
 
             AcceptConnection();
@@ -113,7 +114,7 @@ namespace NetDotNet.SocketLayer
 
         private void AllowConn(Socket sckt)
         {
-            HTTPConnection conn = new HTTPConnection(sckt);
+            var conn = new HTTPConnection(sckt);
             connections.Add(conn);
             EntryPoint.SubscribeConnection(conn);
         }

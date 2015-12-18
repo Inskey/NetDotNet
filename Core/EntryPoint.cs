@@ -6,7 +6,8 @@ using NetDotNet.API.Results;
 using NetDotNet.Core.UI;
 using System.Collections.Generic;
 using System.IO;
-
+using NetDotNet.API.Security;
+using NetDotNet.API.Cookies;
 
 namespace NetDotNet.Core
 {
@@ -21,6 +22,27 @@ namespace NetDotNet.Core
         private static Dictionary<string, IPage> resources = new Dictionary<string, IPage>();
         private static Dictionary<HTTPCode, IPage> specials = new Dictionary<HTTPCode, IPage>();
 
+        private static List<UploadToken> uploadTokens = new List<UploadToken>();
+        internal static void RemoveUT(UploadToken t)
+        {
+            lock (uploadTokens)
+            {
+                uploadTokens.Remove(t);
+            }
+        }
+        internal static void AddUT(UploadToken t)
+        {
+            lock (uploadTokens)
+            {
+                uploadTokens.Add(t);
+            }
+        }
+        internal static List<UploadToken> GetUTs()
+        {
+            return new List<UploadToken>(uploadTokens);
+        }
+        private static List<Cookie> cookies = new List<Cookie>();
+
 
         public static void Main(string[] args)
         {
@@ -28,15 +50,18 @@ namespace NetDotNet.Core
             term = (Util.IsLinux() ? (ITerminal) new LinTerminal() : new WinTerminal());
             term.Init();
 
-            term.WriteLine("  _   _      _     _   _  _____ _____ ");
-            term.WriteLine(" | \\ | |    | |   | \\ | ||  ___|_   _|");
-            term.WriteLine(" |  \\| | ___| |_  |  \\| || |__   | |  ");
-            term.WriteLine(" | . ` |/ _ \\ __| | . ` ||  __|  | |  ");
-            term.WriteLine(" | |\\  |  __/ |_ _| |\\  || |___  | | ");
-            term.WriteLine(" \\_| \\_/\\___|\\__(_)_| \\_/\\____/  \\_/");
-            term.WriteLine("---------------------------------------");
-            term.WriteLine(" Revolutionize web development with C# ");
-            term.WriteLine("---------------------------------------");
+            term.WriteLine(@"┌───────────────────────────────────────┐");
+            term.WriteLine(@"│ Revolutionize web development with C# │");
+            term.WriteLine(@"├───────────────────────────────────────┤");
+            term.WriteLine(@"│  _   _      _     _   _  _____ _____  │");
+            term.WriteLine(@"│ | \ | |    | |   | \ | ||  ___|_   _| │");
+            term.WriteLine(@"│ |  \| | ___| |_  |  \| || |__   | |   │");
+            term.WriteLine(@"│ | . ` |/ _ \ __| | . ` ||  __|  | |   │");
+            term.WriteLine(@"│ | |\  |  __/ |_ _| |\  || |___  | |   │");
+            term.WriteLine(@"│ \_| \_/\___|\__(_)_| \_/\____/  \_/   │");
+            term.WriteLine(@"├───────────────────────────────────────┤");
+            term.WriteLine(@"│   An open source project by Inskey°   │");
+            term.WriteLine(@"└───────────────────────────────────────┘");
 
             Logger.SetTerminal(term);
             Logger.Log("Terminal set up for " + (Util.IsLinux() ? "Linux" : "Windows") + ".");
@@ -45,11 +70,6 @@ namespace NetDotNet.Core
             Logger.Log("Loading pages...");
             short amount = LoadPages();
             Logger.Log("Loaded " + amount + " pages.");
-
-            foreach (var p in pages.Values)
-            {
-                Logger.Log(p.Get(null).GetBody().ReadToEnd());
-            }
 
             // Load all the resources
             Logger.Log("Loading resources...");

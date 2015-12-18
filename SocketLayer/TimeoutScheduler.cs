@@ -4,12 +4,13 @@ using System;
 using System.Linq;
 using System.Collections.Concurrent;
 using NetDotNet.Core;
+using NetDotNet.Core.Expiration;
 
 namespace NetDotNet.SocketLayer
 {
     internal static class TimeoutScheduler
     {
-        private static ConcurrentDictionary<long, HTTPConnection> timeouts = new ConcurrentDictionary<long, HTTPConnection>();
+        private static ConcurrentDictionary<long, IExpirable> timeouts = new ConcurrentDictionary<long, IExpirable>();
         private static bool alive = true;
 
         internal static void Init()
@@ -22,10 +23,10 @@ namespace NetDotNet.SocketLayer
             while (alive)
             {
                 long ms = GetMS();
-                foreach (KeyValuePair<long, HTTPConnection> p in timeouts
+                foreach (KeyValuePair<long, IExpirable> p in timeouts
                     .Where(l => l.Key > ms))
                 {
-                    p.Value.Timeout();
+                    p.Value.Expire();
                 }
                     
                 Thread.Sleep(100);
