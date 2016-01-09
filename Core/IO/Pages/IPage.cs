@@ -9,5 +9,7 @@ namespace NetDotNet.Core.IO.Pages
     {
         Result Get(Request request);
         Result Post(Request request);
+
+        string GetPath();
     }
 }

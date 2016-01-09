@@ -9,8 +9,9 @@ namespace NetDotNet.Core.IO.Pages
     internal class DynamicGenerator : IPage
     {
         private IPageGenerator generator;
+        private string path;
 
-        internal DynamicGenerator(IPageGenerator gen)
+        internal DynamicGenerator(IPageGenerator gen, string path)
         {
             generator = gen;
         }
@@ -23,6 +24,11 @@ namespace NetDotNet.Core.IO.Pages
         Result IPage.Post(Request request)
         {
             return generator.Post(request);
+        }
+
+        string IPage.GetPath()
+        {
+            return path;
         }
     }
 }

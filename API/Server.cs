@@ -43,7 +43,7 @@ namespace NetDotNet.API
         // Token stuff
         public static List<UploadToken> GetUploadTokensForIP(string addr)
         {
-            return (from ut in EntryPoint.GetUTs()
+            return (from ut in EntryPoint.UTokenManager.GetUTs()
                     where ut.ClientIP == addr
                     select ut)
                     .ToList();

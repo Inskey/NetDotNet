@@ -17,14 +17,16 @@ namespace NetDotNet.SocketLayer
         internal IPAddress RemoteIP;
         private string prefix;
 
+        private DateTime expiration;
+
         internal HTTPConnection(Socket s)
         {
             sckt = s;
-            IPEndPoint ep = ((IPEndPoint)sckt.RemoteEndPoint);
+            IPEndPoint ep = ((IPEndPoint) sckt.RemoteEndPoint);
             RemoteIP = ep.Address;
             prefix = "[" + ep.Address.ToString() + ":" + ep.Port.ToString() + "] ";
+            expiration = DateTime.Now + TimeSpan.FromSeconds(ServerProperties.);
             AcceptData();
-            TimeoutScheduler.AddTimeout(this);
         }
 
         internal void Close()
@@ -41,11 +43,11 @@ namespace NetDotNet.SocketLayer
         }
 
         private byte[] data = new byte[1];
-        private void AcceptData()
+        private void AcceptData(bool skip = false)
         {
             try
             {
-                sckt.BeginReceive(data, 0, data.Length, SocketFlags.None, new AsyncCallback(DataAccepted), null);
+                sckt.BeginReceive(data, 0, data.Length, SocketFlags.None, skip ? (AsyncCallback) Skip : DataAccepted, null);
             }
             catch (SocketException se)
             {
@@ -56,6 +58,12 @@ namespace NetDotNet.SocketLayer
             catch (ObjectDisposedException) { Close(); }
         }
 
+        private void Skip(IAsyncResult r)
+        {
+            EndReceive(r);
+        }
+
+        ushort headerLength = 0;
         ulong bytesSoFar = 0;
         bool first = true;
         bool inBody = false;
@@ -82,70 +90,90 @@ namespace NetDotNet.SocketLayer
                     return;
                 }
             }
-            else if (data[0] != 10) // If we're not in the body, we must be in the header, so parse some necessary things. Ignore \n because it will always follow a \r.
+            else // If we're not in the body, we must be in the header, so parse some necessary things. 
             {
-                if (data[0] == 13) // carriage return (\r)
+                headerLength++;
+                if (headerLength > ServerProperties.MaxHeaderLength)
                 {
-                    if (first) // if this is the first line, get the request type and check if it's trying to access an upload token
+                    Logger.Log(LogLevel.Error, prefix + "Client exceeded max header length! Is this an attack? Closing connection.");
+                    Close();
+                    return;
+                }
+                if (data[0] != 10) // Ignore \n because it will always follow a \r.
+                {
+                    if (data[0] == 13) // carriage return (\r)
                     {
-                        switch (line.Split(' ')[0])
+                        if (first) // if this is the first line, get the request type and check if it's trying to access an upload token
                         {
-                            case "GET":
-                                type = RequestType.GET;
-                                break;
-                            case "POST":
-                                type = RequestType.POST;
-                                break;
-                            case "OPTIONS":
-                                type = RequestType.OPTIONS;
-                                break;
-                            case "HEAD":
-                                type = RequestType.HEAD;
-                                break;
-                            case "TRACE":
-                                type = RequestType.TRACE;
-                                break;
-                            default:
-                                Logger.Log(LogLevel.Error, "Client sent unsupported HTTP method: " + line.Split(' ')[0] + "! Closing connection!");
-                                Close();
-                                return;
-                        }
-                        first = false;
-                    }
-                    else
-                    {
-                        if (line == "") // if it's a blank line, we're now in the body
-                        {
-                            inBody = true;
-                        }
-
-                        string[] parts = line.Split(':');
-                        if (parts.Length == 2)
-                        {
-                            if (parts[0] == "Content-Length")
+                            switch (line.Split(' ')[0])
                             {
-                                if (!ulong.TryParse(parts[1].Trim(), out contentLength))
-                                {
-                                    Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                                case "GET":
+                                    type = RequestType.GET;
+                                    break;
+                                case "POST":
+                                    type = RequestType.POST;
+                                    break;
+                                case "OPTIONS":
+                                    type = RequestType.OPTIONS;
+                                    break;
+                                case "HEAD":
+                                    type = RequestType.HEAD;
+                                    break;
+                                case "TRACE":
+                                    type = RequestType.TRACE;
+                                    break;
+                                default: // This case could be handled by the parser, but better to catch it early.
+                                    Logger.Log(LogLevel.Error, "Client sent unsupported HTTP method: " + line.Split(' ')[0] + "! Closing connection!");
                                     Close();
-                                }
-                                else if (contentLength > ServerProperties.MaxPostLength)
+                                    return;
+                            }
+                            first = false;
+                        }
+                        else
+                        {
+                            if (line == "") // If it's a blank line, we're now in the body
+                            {
+                                inBody = true;
+                                headerLength = 0;
+                                AcceptData(true);
+                                return;
+                            }
+
+                            string[] parts = line.Split(':');
+                            if (parts.Length == 2)
+                            {
+                                if (parts[0] == "Content-Length")
                                 {
-                                    Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
-                                    Close();
+                                    if (! ulong.TryParse(parts[1].Trim(), out contentLength))
+                                    {
+                                        Logger.Log(LogLevel.Error, prefix + "Client sent bad Content-Length (not a valid number). Closing connection.");
+                                        Close();
+                                        return;
+                                    }
+                                    else if (contentLength > ServerProperties.MaxPostLength)
+                                    {
+                                        Logger.Log(LogLevel.Error + "Client sent bad Content-Length (larger than max-request-length set in ./server.properties). Closing connection.");
+                                        Close();
+                                        return;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    line = "";
-                }
-                else
-                {
-                    line += Encoding.UTF8.GetString(data);
+                        line = "";
+                    }
+                    else
+                    {
+                        line += Encoding.UTF8.GetString(data);
+                    }
                 }
             }
 
+            EndReceive(r);
+        }
+
+        private void EndReceive(IAsyncResult r)
+        {
             try
             {
                 sckt.EndReceive(r);
@@ -164,7 +192,6 @@ namespace NetDotNet.SocketLayer
                 Close();
                 return;
             }
-
             AcceptData();
         }
 
@@ -192,10 +219,15 @@ namespace NetDotNet.SocketLayer
             }
         }
 
-        void IExpirable.Expire()
+        void IExpirable.Expire(bool early)
         {
             Logger.Log(LogLevel.Error, prefix + "Client took too long to send the request. Disconnecting.");
             Close();
+        }
+
+        DateTime? IExpirable.GetExpiration()
+        {
+            return expiration;
         }
 
         internal delegate void RequestCompleteHandler(Result result);

@@ -6,7 +6,7 @@ namespace NetDotNet.API.Results
 {
     public class File : ResultBody
     {
-        private string path;
+        internal readonly string path;
         private bool loadInMemory;
         private byte[] content;
         private FileStream stream;

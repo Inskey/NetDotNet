@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System;
+using NetDotNet.Core.IO.Pages;
 
 
-namespace NetDotNet.Core.IO.Pages
+namespace NetDotNet.Core.IO
 {
     internal static class Loader
     {
@@ -104,5 +105,7 @@ namespace NetDotNet.Core.IO.Pages
                 return LoadFlat(loc + ".html");
             }
         }
+
+
     }
 }

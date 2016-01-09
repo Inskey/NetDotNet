@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NetDotNet.Core.Expiration
 {
     internal interface IExpirable
     {
-        void Expire();
+        void Expire(bool early);
+        DateTime? GetExpiration();
     }
 }

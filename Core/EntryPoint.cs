@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using NetDotNet.API.Security;
 using NetDotNet.API.Cookies;
+using NetDotNet.Core.Managers;
+using NetDotNet.Core.IO;
 
 namespace NetDotNet.Core
 {
@@ -22,27 +24,6 @@ namespace NetDotNet.Core
         private static Dictionary<string, IPage> resources = new Dictionary<string, IPage>();
         private static Dictionary<HTTPCode, IPage> specials = new Dictionary<HTTPCode, IPage>();
 
-        private static List<UploadToken> uploadTokens = new List<UploadToken>();
-        internal static void RemoveUT(UploadToken t)
-        {
-            lock (uploadTokens)
-            {
-                uploadTokens.Remove(t);
-            }
-        }
-        internal static void AddUT(UploadToken t)
-        {
-            lock (uploadTokens)
-            {
-                uploadTokens.Add(t);
-            }
-        }
-        internal static List<UploadToken> GetUTs()
-        {
-            return new List<UploadToken>(uploadTokens);
-        }
-        private static List<Cookie> cookies = new List<Cookie>();
-
 
         public static void Main(string[] args)
         {
@@ -50,18 +31,18 @@ namespace NetDotNet.Core
             term = (Util.IsLinux() ? (ITerminal) new LinTerminal() : new WinTerminal());
             term.Init();
 
-            term.WriteLine(@"┌───────────────────────────────────────┐");
-            term.WriteLine(@"│ Revolutionize web development with C# │");
-            term.WriteLine(@"├───────────────────────────────────────┤");
-            term.WriteLine(@"│  _   _      _     _   _  _____ _____  │");
-            term.WriteLine(@"│ | \ | |    | |   | \ | ||  ___|_   _| │");
-            term.WriteLine(@"│ |  \| | ___| |_  |  \| || |__   | |   │");
-            term.WriteLine(@"│ | . ` |/ _ \ __| | . ` ||  __|  | |   │");
-            term.WriteLine(@"│ | |\  |  __/ |_ _| |\  || |___  | |   │");
-            term.WriteLine(@"│ \_| \_/\___|\__(_)_| \_/\____/  \_/   │");
-            term.WriteLine(@"├───────────────────────────────────────┤");
-            term.WriteLine(@"│   An open source project by Inskey°   │");
-            term.WriteLine(@"└───────────────────────────────────────┘");
+            term.WriteLine(@"+---------------------------------------+");
+            term.WriteLine(@"| Revolutionize web development with C# |");
+            term.WriteLine(@"+---------------------------------------+");
+            term.WriteLine(@"|  _   _      _     _   _  _____ _____  |");
+            term.WriteLine(@"| | \ | |    | |   | \ | ||  ___|_   _| |");
+            term.WriteLine(@"| |  \| | ___| |_  |  \| || |__   | |   |");
+            term.WriteLine(@"| | . ` |/ _ \ __| | . ` ||  __|  | |   |");
+            term.WriteLine(@"| | |\  |  __/ |_ _| |\  || |___  | |   |");
+            term.WriteLine(@"| \_| \_/\___|\__(_)_| \_/\____/  \_/   |");
+            term.WriteLine(@"+---------------------------------------+");
+            term.WriteLine(@"|   An open source  project by Inskey   |");
+            term.WriteLine(@"+---------------------------------------+");
 
             Logger.SetTerminal(term);
             Logger.Log("Terminal set up for " + (Util.IsLinux() ? "Linux" : "Windows") + ".");
@@ -175,12 +156,22 @@ namespace NetDotNet.Core
             if (! pages.TryGetValue(r.URI, out p))
             {
                 p = specials[HTTPCode.NotFound];
+                callback(p.Get(r));
             }
 
             var res = p.Get(r);
             if (res.Keep_Alive == null)
             {
                 res.Keep_Alive = r.Keep_Alive; // Unless the page specifically accepted or denied keeping the connection open, go with what the client asked.
+            }
+
+            foreach (var c in res.cookies)
+            {
+                if (c.Path == null)
+                {
+                    c.Path = p.GetPath(); // Set the cookie's path if it wasn't specified.
+                }
+                CookieManager.AddCookie(c);
             }
 
             callback(res);

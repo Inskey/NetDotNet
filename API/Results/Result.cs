@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NetDotNet.API.Cookies;
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 
@@ -16,6 +18,8 @@ namespace NetDotNet.API.Results
 
         public string Content_Type = "text/html";
         public DateTime Last_Modified; // how do we want to keep up with this?
+
+        public List<Cookie> cookies = new List<Cookie>();
 
         private ResultBody body;
         public ResultBody Body {

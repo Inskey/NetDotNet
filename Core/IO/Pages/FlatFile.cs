@@ -28,5 +28,10 @@ namespace NetDotNet.Core.IO.Pages
         {
             return null;
         }
+
+        string IPage.GetPath()
+        {
+            return file.path;
+        }
     }
 }

@@ -1,47 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetDotNet.Core;
+using NetDotNet.Core.Expiration;
+using NetDotNet.Core.Managers;
+using System;
 
 namespace NetDotNet.API.Cookies
 {
-    public class Cookie
+    public class Cookie : IExpirable
     {
+        /// <summary>
+        /// IP of the client "owning" the cookie.
+        /// </summary>
+        public string ClientIP;
+
         /// <summary>
         /// When should the cookie expire? Leave null for a session cookie (deleted on browser closing).
         /// </summary>
-        DateTime? Expiration;
+        public DateTime? Expiration;
 
         /// <summary>
         /// Only allow this cookie to be modified/transmitted over HTTP (not by JavaScript, thus less vulnerable to XSS). Default false.
         /// </summary>
-        bool HTTPOnly = false;
+        public bool HTTPOnly = false;
 
         /// <summary>
         /// Specify the domain name (or IP) for the cookie. By default, the cookie will only be sent back to the same page that set it.
         /// </summary>
-        string Domain;
+        public string Domain;
 
         /// <summary>
-        /// Specify the path on this server that the cookie should be sent back to.
+        /// Specify the path on this server that the cookie should be sent back to. "/" will send it to all paths. `null` means the cookie is only sent back to the page which produced it.
         /// </summary>
-        string Path;
+        public string Path;
 
         /// <summary>
         /// Key, or name, for the cookie.
         /// </summary>
-        string Key;
+        public string Key;
 
         /// <summary>
         /// Value of the cookie.
         /// </summary>
-        string Value;
+        public string Value;
 
         /// <summary>
         /// Get the cookie as it will be formatted in an HTTP response
         /// </summary>
-        string ToRaw()
+        public string ToRaw()
         {
             string raw = Key + "=" + Value;
             if (Domain != null)
@@ -62,6 +66,27 @@ namespace NetDotNet.API.Cookies
             }
 
             return raw;
+        }
+
+        /// <summary>
+        /// If you want the server to stop keeping up with this cookie before it would naturally expire, call this method.
+        /// </summary>
+        public void Expire()
+        {
+            ((IExpirable) this).Expire(true);
+        }
+        void IExpirable.Expire(bool early)
+        {
+            CookieManager.DeleteCookie(this);
+            if (early)
+            {
+                Expirer.Expire(this);
+            }
+        }
+
+        DateTime? IExpirable.GetExpiration()
+        {
+            return Expiration;
         }
     }
 }
