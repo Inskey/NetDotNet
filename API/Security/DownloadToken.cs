@@ -42,8 +42,12 @@ namespace NetDotNet.API.Security
         /// <summary>
         /// If you want the token to expire before the set time, call this method. 
         /// </summary>
-        public void Expire()
+        public void Expire(bool early)
         {
+            if (early)
+            {
+                Expirer.Expire(this);
+            }
             DownloadTokenManager.RemoveDT(this);
         }
 

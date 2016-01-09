@@ -1,11 +1,13 @@
 ﻿using NetDotNet.API.Security;
 using NetDotNet.Core;
+using NetDotNet.Core.Managers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+
 
 namespace NetDotNet.API
 {
+    // !!! work on this once ServerProperties is complete !!!
     public static class Server
     {
         // Options--descriptions of each can be found in the server.properties file. I've used different convention to save space here since these are so repetitive.
@@ -27,9 +29,7 @@ namespace NetDotNet.API
         public static int DelayBetweenPackets() {
             return ServerProperties.PcktDelay;
         }
-        public static long RequestTimeoutMS() {
-            return ServerProperties.RequestTimeout;
-        }
+
         public static bool UseHTTPTarpit() { 
             return ServerProperties.UseTarpit;
         }
@@ -43,10 +43,10 @@ namespace NetDotNet.API
         // Token stuff
         public static List<UploadToken> GetUploadTokensForIP(string addr)
         {
-            return (from ut in EntryPoint.UTokenManager.GetUTs()
+            return (from ut in UploadTokenManager.GetUTs()
                     where ut.ClientIP == addr
                     select ut)
-                    .ToList();
+                   .ToList();
         }
     }
 }

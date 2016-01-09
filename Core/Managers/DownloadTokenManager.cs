@@ -11,7 +11,7 @@ namespace NetDotNet.Core.Managers
     {
         private static List<DownloadToken> downloadTokens = new List<DownloadToken>();
 
-        internal static void RemoveUT(DownloadToken t)
+        internal static void RemoveDT(DownloadToken t)
         {
             lock (downloadTokens)
             {
@@ -19,7 +19,7 @@ namespace NetDotNet.Core.Managers
             }
         }
 
-        internal static void AddUT(DownloadToken t)
+        internal static void AddDT(DownloadToken t)
         {
             lock (downloadTokens)
             {
@@ -27,7 +27,7 @@ namespace NetDotNet.Core.Managers
             }
         }
 
-        internal static List<DownloadToken> GetUTs()
+        internal static List<DownloadToken> GetDTs()
         {
             return new List<DownloadToken>(downloadTokens);
         }

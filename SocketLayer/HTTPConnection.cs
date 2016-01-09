@@ -25,7 +25,7 @@ namespace NetDotNet.SocketLayer
             IPEndPoint ep = ((IPEndPoint) sckt.RemoteEndPoint);
             RemoteIP = ep.Address;
             prefix = "[" + ep.Address.ToString() + ":" + ep.Port.ToString() + "] ";
-            expiration = DateTime.Now + TimeSpan.FromSeconds(ServerProperties.);
+            expiration = DateTime.Now + TimeSpan.FromSeconds(ServerProperties.HeaderTimeout);
             AcceptData();
         }
 
@@ -134,6 +134,7 @@ namespace NetDotNet.SocketLayer
                             if (line == "") // If it's a blank line, we're now in the body
                             {
                                 inBody = true;
+
                                 headerLength = 0;
                                 AcceptData(true);
                                 return;

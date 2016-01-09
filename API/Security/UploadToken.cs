@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NetDotNet.Core;
 using NetDotNet.Core.Expiration;
 using NetDotNet.Core.Managers;
+
 
 namespace NetDotNet.API.Security
 {
@@ -42,8 +39,12 @@ namespace NetDotNet.API.Security
         /// <summary>
         /// If you want the token to expire before the set time, call this method. 
         /// </summary>
-        public void Expire()
+        public void Expire(bool early)
         {
+            if (early)
+            {
+                Expirer.Expire(this);
+            }
             UploadTokenManager.RemoveUT(this);
         }
 
